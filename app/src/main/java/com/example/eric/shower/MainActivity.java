@@ -1,5 +1,5 @@
 /*
-*
+* Created by Eric Smithson on October 17th 2015
 */
 
 package com.example.eric.shower;
