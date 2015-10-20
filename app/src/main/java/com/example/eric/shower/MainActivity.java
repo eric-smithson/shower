@@ -115,37 +115,43 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-int p;
+
+    int p;
+    // mark[] is the array holding the timing information, it contains the time (in seconds) at which every lyric occurs
+    // lyrics[] contains the lyrics information, make sure individual lyrics are less than ~35 characters otherwise they'll run off the screen.
     public void recursiveLyrics(int i, final int[] mark, final String[] lyrics) {
-        p=i;
+        p=i; // I use p as my index because for some reason the compiler didn't like me using i in the Asynchronous tasks
+
+        //Starts an Asynchronous process
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected void onPreExecute() {
             }
 
             @Override
-            protected Void doInBackground(Void... params) {
+            protected Void doInBackground(Void... params) { // this is the actual asynchronous task, if you write your code in
+                                                            // the post or pre execute blocks it will still run but it won't be asynchronous.
                 try {
-                    // Pauses the function for the amount of time between the lyrics
-                    Thread.sleep((mark[p + 1] - mark[p]) * 1000);
+
+                    Thread.sleep((mark[p + 1] - mark[p]) * 1000); // Pauses the function for the amount of time between the lyrics
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        // generates an rv to hide at the end of the notification. The pebble doesn't allow duplicate notifications so this is the work around I found.
+                        // Generates an rv to hide at the end of the notification. Pebble doesn't allow duplicate notifications so this is the workaround I found.
                         Random rand = new Random();
                         int rv = rand.nextInt(10000);
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
                         builder.setSmallIcon(R.drawable.ic_launcher);
 
-                        // sets lyric information
+                        // sets notification to contain the text of the next lyric
                         builder.setContentTitle("");
-                        builder.setContentText(lyrics[p] +"\n\n\n\n\n\n"+ rv);
+                        builder.setContentText(lyrics[p] +"\n\n\n\n\n\n"+ rv); // I add a bunch of \n's to hide the random value at the bottom
                         NotificationManager notifManager =
                                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                        notifManager.notify(42,builder.build());
+                        notifManager.notify(42,builder.build()); //Sends the notification!
                     }
                 });
                 return null;
@@ -153,15 +159,13 @@ int p;
 
             @Override
             protected void onPostExecute(Void aVoid) {
-                // stops the function when the lyrics run out or when the user longpresses the button
+                // stops the function when the lyrics run out or when the user longpresses the start button
                 if(p >= lyrics.length - 1 || longclick){
-                    // resets the longclick so you can start the lyrics again.
-                    longclick = false;
+                    longclick = false; // resets the longclick to false so you can start the lyrics again without having to restart the app.
                     return;
                 }
 
-                //recalls the function, and iterates the lyrics and time array
-                recursiveLyrics(p + 1, mark, lyrics);
+                recursiveLyrics(p + 1, mark, lyrics); // Recursively calls the function, and then increments the index of lyrics and time array
             }
         }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
